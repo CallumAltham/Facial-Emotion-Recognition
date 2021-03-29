@@ -1,7 +1,6 @@
 # FACIAL EMOTION RECOGNITION SYSTEM - README
 
 ## DEPENDENCIES AND INSTALLATION
-## ======================================
 ```bash
 dlib: 19.21.1
 pandas: 1.1.5
@@ -26,7 +25,6 @@ https://www.tensorflow.org/install/gpu
 <br />
 
 ## USAGE - MODEL TRAINING
-## ===========================
 
 If no models are provided, run train_model.py as follows
 
@@ -69,7 +67,6 @@ AVAILABLE PARAMETERS
 <br />
 
 ## USAGE - RUNNING MAIN APPLICATION
-## ========================================
 
 Running the main application is a simple task, simply open a terminal or CMD window in the root application directory and enter the following command.
 
@@ -84,7 +81,6 @@ python facial_rec.py
 <br />
 
 ## USAGE - CONTROLLING INPUT PLAYBACK
-## ==========================================
 
 Three buttons are available to control playback, with each button being available for differing input types:
 - Play: Can only control playback of video input. Will be unable to be pressed when no video input selected, or when video is still playing
@@ -94,7 +90,6 @@ Three buttons are available to control playback, with each button being availabl
 <br />
 
 ## USAGE - SELECTING AN INPUT FOR PREDICTION
-## ==========================================
 
 Three buttons are available to select the type of input used. Namely:
 - Image Input: Image based input only (e.g. jpg/png)
@@ -107,7 +102,6 @@ Three buttons are available to select the type of input used. Namely:
 <br />
 
 ## USAGE - SELECTING AN MODEL FOR PREDICTION
-## ==========================================
 
 A dropdown menu is available for selecting the model to be used in prediction.
 
@@ -118,7 +112,6 @@ NOTE: Models must be saved in a .h5 format by Keras with a .model extension. No 
 <br />
 
 ## USAGE - VIEW HELP
-## ==========================================
 
 A small subset of help information is available within the application.
 
@@ -129,21 +122,24 @@ To close this panel, simply click the help button once more and the panel will c
 <br />
 
 ## USAGE - GENERATE METRICS
-## ==========================================
 
-ADD LATER
+Within the application, a separate panel is available to allow for the generation of metrics.
+
+To access this panel, click the button labelled "Metrics" at the bottom middle of the application.
+
+Within this panel is a dropdown menu and a button. To generate a metric, please select an option from the dropdown menu and the metric will appear on screen.
+
+To save this metric to file, press the save to disk button next to the dropdown menu and select a save location, filename and extension. The currently selected metric will then be saved in the selected location.
 
 <br />
 
 ## USAGE - CHANGE SETTINGS
-## ==========================================
 
 ADD LATER
 
 <br />
 
 ## TROUBLESHOOTING
-## ====================================
 
 The following table may show potential solutions to problems that may arise. If not, please feel free to attempt to find a solution yourself within the code or email me at callumaltham1@gmail.com for aid with the subject line "Facial Emotion Recognition System Issue".
 
@@ -158,7 +154,6 @@ NOTE: Please inform me of any issues you find, even if you manage to fix them yo
 <br />
 
 ## THANK YOU FOR READING
-## ====================================
 
 Any questions please don't hestitate to email me at callumaltham1@gmail.com. Please start the subject line of the email as "Facial Emotion Recognition System Query" 
 
