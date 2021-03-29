@@ -1,0 +1,32 @@
+FACIAL EMOTION RECOGNITION SYSTEM HELP
+==========================================
+
+PLEASE NOTE:
+----------------
+- When selecting any input, please allow time for model to load into system
+for prediction,
+this is entirely normal and input should be visible within a few seconds
+
+- System is currently only able to determine emotion of a single face
+
+BUTTON COMMANDS:
+------------------------
+
+PLAY: Resume video playback
+PAUSE: Pause video playback
+END: End video and camera playback
+
+IMAGE INPUT: Select image for use within system
+VIDEO INPUT: Select video for use within system
+CAMERA INPUT: Start default camera for use within system
+
+MODEL DROPDOWN: Select model for use in prediction.
+    NOTE: Only models found within 'Models' folder and saved in H5 format
+    with a .model extension by KERAS will be accepted
+
+HELP: Open and close help panel 
+SETTINGS: Open and close settings panel
+METRICS: Open and close metrics panel
+
+A full set of documentation can be found in the Utilities folder and at 
+https://github.com/CallumAltham/Facial-Emotion-Recognition
