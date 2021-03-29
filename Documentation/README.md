@@ -1,6 +1,6 @@
 # FACIAL RECOGNITION SYSTEM - README
 
-## DEPENDENCIES
+## DEPENDENCIES AND INSTALLATION
 ```bash
 dlib: 19.21.1
 pandas: 1.1.5
@@ -17,7 +17,7 @@ Use the package manager to install required dependencies with requirements.txt f
 pip install -r requirements.txt
 ```
 
-![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif)
+![Alt Text](https://raw.githubusercontent.com/CallumAltham/Facial-Emotion-Recognition/main/Documentation/gifs/requirements-install.gif)
 
 Note: Tensorflow may not install GPU support correctly without presence of CUDA and CuDNN. Please see link below for more info:
 https://www.tensorflow.org/install/gpu
