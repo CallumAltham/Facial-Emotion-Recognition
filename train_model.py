@@ -1,6 +1,6 @@
 import matplotlib
 matplotlib.use("Agg")
-import housekeeping
+import Network.housekeeping
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.preprocessing import image_dataset_from_directory
 from tensorflow.keras.applications.inception_v3 import InceptionV3
