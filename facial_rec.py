@@ -1,7 +1,7 @@
 from IO.video_handler import video_handler
 from Network.network_handler import networkHandler
 from tkinter import *
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 import cv2
 from IO.camera_handler import camera_handler
 from IO.image_handler import image_handler
@@ -172,7 +172,38 @@ class facial_rec:
 
     """METHOD USED TO HANDLE SELECTION OF ITEMS WITHIN MODEL SELECTOR DROPDOWN"""
     def model_dropdown_select(self, *args):
-        self.network_handler.load_model(self.modelSelect.get())
+        model_name = self.modelSelect.get()
+
+        model_pres = False
+
+        file = open("Utilities/model_config.txt", "r")
+        for line in file:
+            items = line.replace("\n", "").split(" ")
+            model_nme = items[0]
+            if model_nme == model_name:
+                model_pres = True
+        file.close()
+
+        if model_pres:
+            self.network_handler.load_model(model_name)
+        else:
+            width = simpledialog.askstring("Parameter Input", "What is the width used in the model?", parent=self.root)
+            height = simpledialog.askstring("Parameter Input", "What is the height used in the model?", parent=self.root)
+            num_classes = simpledialog.askstring("Parameter Input", "How many classes are used in the model?", parent=self.root)
+            classes = simpledialog.askstring("Parameter Input", "What are the classes used in the model? (Classes must be in the same order as specified during training and separated by a space)")
+
+            params = [width, height, num_classes, classes]
+            res = None in params
+
+            if res:
+                messagebox.showwarning("Model Configuration Error", "Cannot use selected model as not all parameters provided")
+                self.modelSelect.set("Prediction Model Select")
+            else:
+                file = open("Utilities/model_config.txt", "a")
+                file.write(model_name + " " + height + " " + width + " " + num_classes + " " + classes + "\n")
+                file.close()
+                self.network_handler.load_model(model_name)
+
     
     def metric_dropdown_select(self, *args):
         metric = self.network_handler.generate_metrics(self.metricSelect.get())
@@ -207,7 +238,7 @@ class facial_rec:
             self.update_cam_image()
 
         if button == "video":
-            filename =  filedialog.askopenfilename(initialdir = "/users/callu/documents", title = "Select Video file",filetypes = (("mp4 files","*.mp4"),("all files","*.*")))
+            filename =  filedialog.askopenfilename(initialdir = "/", title = "Select Video file",filetypes = (("mp4 files","*.mp4"),("all files","*.*")))
 
             if filename:
                 self.input_flag = "video"
@@ -224,7 +255,7 @@ class facial_rec:
                 self.update_vid_image()
 
         if button == "image":
-            filename =  filedialog.askopenfilename(initialdir = "/users/callu/documents",title = "Select Image file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+            filename =  filedialog.askopenfilename(initialdir = "/",title = "Select Image file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
 
             if filename:
                 self.imageButton['state'] = DISABLED
@@ -245,7 +276,10 @@ class facial_rec:
 
                 MsgBox = messagebox.askquestion ('Save Image To File','Do you want to save the annotated image to disk', icon = 'question')
                 if MsgBox == 'yes':
-                    cv2.imwrite("annotated-"+ datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") +".jpg", cv2.cvtColor(i, cv2.COLOR_BGR2RGB))
+                    filename = filedialog.asksaveasfilename(initialdir="/", title="Select Location To Save Annotated Image", 
+                    defaultextension=".*", filetypes=(("jpeg files","*.jpg"), ("png files", "*.png"),("all files","*.*")))
+                    if filename:
+                        cv2.imwrite(filename, cv2.cvtColor(i, cv2.COLOR_BGR2RGB))
 
 
         if button == "pause":
@@ -269,8 +303,10 @@ class facial_rec:
 
             if self.input_flag == "video":
                 self.root.after_cancel(self.vid_job)
+                self.vid_cap = None
             elif self.input_flag == "camera":
                 self.root.after_cancel(self.cam_job)
+                self.cam_cap = None
 
             self.input_flag = None
 
@@ -332,7 +368,7 @@ class facial_rec:
 
         if button == "save":
             if self.current_fig:
-                filename =  filedialog.asksaveasfilename(initialdir = "/users/callu/documents", title = "Select Location To Save Metric Image File", 
+                filename =  filedialog.asksaveasfilename(initialdir = "/", title = "Select Location To Save Metric Image File", 
                 defaultextension=".*", filetypes=(("jpeg files","*.jpg"), ("png files", "*.png"),("all files","*.*")))
                 if filename:
                     self.current_fig.savefig(filename)
@@ -346,9 +382,12 @@ class facial_rec:
         self.canvas.config(width=image.shape[:2][1], height=image.shape[:2][0])
 
         if not self.saveConfirmationFlag:
-            MsgBox = messagebox.askquestion ('Save Video To File','Do you want to save the processed video file to disk', icon = 'question')
+            MsgBox = messagebox.askquestion('Save Video To File','Do you want to save the processed video file to disk', icon = 'question')
             if MsgBox == 'yes':
-                self.setVideoWriter(image.shape[:2][0], image.shape[:2][1])
+                filename = filename = filedialog.asksaveasfilename(initialdir="/", title="Select Location To Save Annotated Video", 
+                    defaultextension=".*", filetypes=(("avi files", "*.avi"),("all files","*.*")))
+                if filename:
+                    self.setVideoWriter(image.shape[:2][0], image.shape[:2][1], filename)
             self.saveConfirmationFlag = True
 
         image = self.network_handler.make_video_prediction(image)
@@ -371,9 +410,12 @@ class facial_rec:
                 vidimage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
                 if not self.saveConfirmationFlag:
-                    MsgBox = messagebox.askquestion ('Save Video To File','Do you want to save the processed video file to disk', icon = 'question')
+                    MsgBox = messagebox.askquestion('Save Video To File','Do you want to save the processed video file to disk', icon = 'question')
                     if MsgBox == 'yes':
-                        self.setVideoWriter(vidimage.shape[:2][0], vidimage.shape[:2][1])
+                        filename = filename = filedialog.asksaveasfilename(initialdir="/users/callu/documents", title="Select Location To Save Annotated Video", 
+                            defaultextension=".*", filetypes=(("avi files", "*.avi"),("all files","*.*")))
+                        if filename:
+                            self.setVideoWriter(vidimage.shape[:2][0], vidimage.shape[:2][1], filename)
                     self.saveConfirmationFlag = True
 
                 self.canvas.config(width=vidimage.shape[:2][1], height=vidimage.shape[:2][0])
@@ -387,7 +429,7 @@ class facial_rec:
                 self.img = ImageTk.PhotoImage(vidimage)
                 self.canvas.create_image(0,0,anchor=NW,image=self.img)
 
-                self.vid_job = self.root.after(self.interval, self.update_vid_image)
+                self.vid_job = self.root.after(16, self.update_vid_image)
 
             else:
                 self.root.after_cancel(self.vid_job)
@@ -397,8 +439,8 @@ class facial_rec:
                 if self.saveFlag:
                     self.releaseWriter()
 
-    def setVideoWriter(self, height, width):
-        self.videoWriter = cv2.VideoWriter('output_video_'+ datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") +'.avi', cv2.VideoWriter_fourcc(*'DIVX'), 10, (width, height))
+    def setVideoWriter(self, height, width, filename):
+        self.videoWriter = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'DIVX'), 10, (width, height))
         self.saveFlag = True
 
     def writeFrame(self, frame):

@@ -10,8 +10,11 @@ class camera_handler:
     """
 
     def __init__(self, source=0):
-        self.source = source
-        self.camStream = cv2.VideoCapture(self.source)
+        try:
+            self.source = source
+            self.camStream = cv2.VideoCapture(self.source)
+        except:
+            print("[ERROR] Cannot access camera. Please check it is plugged in and not being used by another application")
 
     def get_current_frame(self):
         ret, frame = self.camStream.read()

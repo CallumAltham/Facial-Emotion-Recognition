@@ -9,9 +9,11 @@ class video_handler:
         provide said input to facial_rec class.
     """
     def __init__(self, source):
-        self.source = source
-        self.videoStream = cv2.VideoCapture(self.source)
-
+        try:
+            self.source = source
+            self.videoStream = cv2.VideoCapture(self.source)
+        except:
+            print("[ERROR] Unable to access video file, please ensure it is available and not corrupted")
     def get_current_frame(self):
         ret, frame = self.videoStream.read()
         return ret, frame

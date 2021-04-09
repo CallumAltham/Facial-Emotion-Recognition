@@ -14,6 +14,9 @@ class image_handler:
         self.source = source
 
     def load_image(self):
-        img = cv2.cvtColor(cv2.imread(self.source, 1), cv2.COLOR_BGR2RGB)
-        height, width = img.shape[:2]
-        return img, height, width
+        try:
+            img = cv2.cvtColor(cv2.imread(self.source, 1), cv2.COLOR_BGR2RGB)
+            height, width = img.shape[:2]
+            return img, height, width
+        except:
+            print("[ERROR] Unable to access image file, please ensure it is available and not corrupted")

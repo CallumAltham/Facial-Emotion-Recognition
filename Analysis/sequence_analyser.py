@@ -7,14 +7,13 @@ class sequence_analyser:
         self.prediction_counter = 0
         self.recheck_counter = 0
         self.current_prediction = ""
-        self.confidence_values = {"male": 0, "female": 0}
+        self.confidence_values = {"Angry": 0, "Disgust": 0, "Fear": 0, "Happy": 0, "Neutral": 0, "Sad": 0, "Surpise": 0}
 
     def check_for_prediction(self):
         if self.prediction_counter < 50:
             return True
         elif self.prediction_counter == 50:
             self.assign_current_prediction()
-            print(f"Label assigned as {self.current_prediction} with confidence {self.confidence_values[self.current_prediction]}")
             return self.current_prediction 
         elif self.prediction_counter > 50:
             return self.check_recheck_counter()
@@ -25,21 +24,22 @@ class sequence_analyser:
 
     def check_new_prediction(self, prediction):
         if prediction != self.current_prediction:
-            print("Prediction change")
             self.reset_counters()
+            return prediction
         elif prediction == self.current_prediction:
             self.reset_recheck_counter()
+            return self.current_prediction
         
     def check_recheck_counter(self):
         if self.recheck_counter >= 100:
             return "similarity"
         elif self.recheck_counter < 100:
-            self.update_recheck_counter
+            self.update_recheck_counter()
             return self.get_current_prediction()
 
     def reset_counters(self):
         self.prediction_counter = 0
-        self.confidence_values = {"male": 0, "female": 0}
+        self.confidence_values = {"Angry": 0, "Disgust": 0, "Fear": 0, "Happy": 0, "Neutral": 0, "Sad": 0, "Surpise": 0}
         self.current_prediction = ""
         self.recheck_counter = 0
 

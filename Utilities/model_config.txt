@@ -1,0 +1,2 @@
+face_rec_2021-04-08_23-24-08.model 48 48 7 Angry Disgust Fear Happy Neutral Sad Surprise
+face_rec.model 48 48 7 Angry Disgust Fear Happy Neutral Sad Surprise

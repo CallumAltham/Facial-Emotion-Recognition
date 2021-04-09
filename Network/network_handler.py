@@ -16,7 +16,7 @@ class networkHandler:
 
     def __init__(self):
         try:
-            self.model = load_model("Models/InceptionV3 - 87 acc.model")
+            self.model = load_model("Models/face_rec.model")
         except:
             print("Default prediction model not found. Please add file provided to Models directory or run train_model.py file")
             quit()
@@ -39,94 +39,61 @@ class networkHandler:
     def clear_sequence_analyser(self):
         self.sequenceAnalyser.reset_counters()
 
-    def make_image_prediction(self, image):
-        label = {0:"female", 1:"male"}
-        
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+    ## THESE TWO FUNCTIONS CAN EASILY BE COMBINED WITH A CATEGORY VARIABLE
+    def make_image_prediction(self, image):
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         rects = self.detector(gray, 0)
 
         for rect in rects:
-            crop = image[rect.top():rect.bottom(), rect.left():rect.right()]
-            face = cv2.resize(crop, (229, 229))
+            image = self.get_prediction(image, rect, None)
+            #shape = self.shape_predicter(gray, rect)
 
-            img_scaled = face / 255.0
-            reshape = np.reshape(img_scaled, (1, 229, 229, 3))
-            img = np.vstack([reshape])
-            result = self.model.predict(img)
-        
-            max_val = np.max(result[0])
-            max_index = np.where(result[0] == max_val)
-            idx = max_index[0]
-            if idx == 0:
-                cv2.rectangle(image, (rect.left(), rect.top()), (rect.right(), rect.bottom()), (0, 255, 0), 1)
-                cv2.putText(image,label[0],(rect.left(),rect.top()-10),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
-            elif idx == 1:
-                cv2.rectangle(image, (rect.left(), rect.top()), (rect.right(), rect.bottom()), (0, 255, 0), 1)
-                cv2.putText(image,label[0],(rect.left(),rect.top()-10),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
-
-            shape = self.shape_predicter(gray, rect)
-
-            for i in range(shape.num_parts):
-                p = shape.part(i)
-                cv2.circle(image, (p.x, p.y), 1, (0, 0, 255), -1)
+            # for i in range(shape.num_parts):
+            #     p = shape.part(i)
+            #     cv2.circle(image, (p.x, p.y), 1, (0, 0, 255), -1)
         
         return image
 
     def make_video_prediction(self, image):
-        prediction = ""
-        label = {0:"female", 1:"male"}
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         rects = self.detector(gray, 0)
         make_pred = self.sequenceAnalyser.check_for_prediction()
 
-        if make_pred == True:
+        #if make_pred == True:
             #REPLACE WITH REAL PREDICTION CODE WHEN MODEL MADE
-            for rect in rects:
+        for rect in rects:
+            prediction, image = self.get_prediction(image, rect, "video")
 
-                crop = image[rect.top():rect.bottom(), rect.left():rect.right()]
-                face = cv2.resize(crop, (229, 229))
-
-                img_scaled = face / 255.0
-                reshape = np.reshape(img_scaled, (1, 229, 229, 3))
-                img = np.vstack([reshape])
-                result = self.model.predict(img)
-            
-                max_val = np.max(result[0])
-                max_index = np.where(result[0] == max_val)
-                idx = max_index[0]
-                prediction = label[int(idx)]
-
+            if make_pred == True:
                 self.sequenceAnalyser.add_new_prediction(prediction)
-                image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
-        elif make_pred == "similarity":
-            for rect in rects:
-
-                crop = image[rect.top():rect.bottom(), rect.left():rect.right()]
-                face = cv2.resize(crop, (229, 229))
-
-                img_scaled = face / 255.0
-                reshape = np.reshape(img_scaled, (1, 229, 229, 3))
-                img = np.vstack([reshape])
-                result = self.model.predict(img)
-            
-                max_val = np.max(result[0])
-                max_index = np.where(result[0] == max_val)
-                idx = max_index[0]
-                prediction = label[int(idx)]
-
-                self.sequenceAnalyser.check_new_prediction(prediction)
-
-                image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
-
-        elif make_pred != True:
-            prediction = make_pred
-            #REPLACE WITH REAL PREDICTION CODE WHEN MODEL MADE
-            for rect in rects:
+            elif make_pred == "similarity":
+                prediction = self.sequenceAnalyser.check_new_prediction(prediction)
+            elif make_pred != True and make_pred != "similarity":
+                prediction = make_pred
                 self.sequenceAnalyser.update_prediction_counter()
-                image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
 
         return image
+
+    def get_prediction(self, image, rect, category):
+        label = {0:"Angry", 1:"Disgust", 2:"Fear", 3:"Happy", 4:"Neutral", 5:"Sad", 6:"Surpise"}
+        crop = image[rect.top():rect.bottom(), rect.left():rect.right()]
+        face = cv2.resize(crop, (299, 299))
+
+        img_scaled = face / 255.0
+        reshape = np.reshape(img_scaled, (1, 299, 299, 3))
+        img = np.vstack([reshape])
+        result = self.model.predict(img)
+    
+        max_val = np.max(result[0])
+        max_index = np.where(result[0] == max_val)
+        idx = max_index[0]
+        prediction = label[int(idx)]
+        image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
+        if category=="video":
+            return prediction, image
+        else:
+            return image
 
     def annotate_image(self, img, x, y, w, h, prediction):
         image = img

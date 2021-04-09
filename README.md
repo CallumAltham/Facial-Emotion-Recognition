@@ -26,10 +26,10 @@ https://www.tensorflow.org/install/gpu
 
 ## USAGE - MODEL TRAINING
 
-If no models are provided, run train_model.py as follows
+If no models are provided, run train_model.py as follows where 'NUM' is replaced with your chosen parameter value.
 
 ```bash
-python model_train.py -lr NUM -e NUM -bs NUM -n NUM -t DIR -v DIR -he NUM -w NUM
+python train_model.py -lr NUM -e NUM -bs NUM -n NUM -t DIR -v DIR -he NUM -w NUM
 ```
 
 ```bash
