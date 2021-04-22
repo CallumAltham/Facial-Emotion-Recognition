@@ -14,6 +14,7 @@ class video_handler:
             self.videoStream = cv2.VideoCapture(self.source)
         except:
             print("[ERROR] Unable to access video file, please ensure it is available and not corrupted")
+            
     def get_current_frame(self):
         ret, frame = self.videoStream.read()
         return ret, frame

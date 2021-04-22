@@ -1,14 +1,15 @@
 from IO.video_handler import video_handler
-from Network.network_handler import networkHandler
-from tkinter import *
-from tkinter import filedialog, messagebox, simpledialog
-import cv2
 from IO.camera_handler import camera_handler
 from IO.image_handler import image_handler
+from Network.network_handler import networkHandler
+
+from tkinter import *
+import tkinter.font as tkFont
+from tkinter import filedialog, messagebox, simpledialog
+
+import cv2
 from PIL import Image, ImageTk
-import os
 from os import listdir
-import datetime
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class facial_rec:
@@ -23,8 +24,14 @@ class facial_rec:
 
         """WINDOW PROPERTIES AND MAIN WINDOW FRAME"""
         self.root = Tk()
-        self.root.title("Facial Recognition System")
+        self.root.title("Facial Emotion Recognition System")
         self.root.config(bg="lightgrey")
+        self.root.resizable(False, False) 
+
+        self.fontStyle = tkFont.Font(family="Lucia Grande", size=10)
+        self.fontStyleSize = 0
+        self.fontStyleFamily = ""
+        self.fontStyleColour = ""
 
         """CAPTURE STREAMS AND JOBS FOR RUNNING INPUT"""
         self.cam_cap = None
@@ -69,88 +76,122 @@ class facial_rec:
         self.secondaryPanel = Frame(self.root, bg="lightgrey")
         self.secondaryPanel.pack(side=RIGHT)
 
-        self.main_title = Label(self.mainPanel, text="Facial Recognition System", bg="lightgrey")
-        self.main_title.config(font=(14))
+        self.main_title = Label(self.mainPanel, text="Facial Emotion Recognition System", font=self.fontStyle, bg="lightgrey")
         self.main_title.pack(pady=10)
  
         self.canvas = Canvas(self.mainPanel, height=450, width=450)
         self.canvas.pack(pady=10, padx=10)
 
-        videoControlFrame = Frame(self.mainPanel, bg="lightgrey")
-        videoControlFrame.pack()
+        self.videoControlFrame = Frame(self.mainPanel, bg="lightgrey")
+        self.videoControlFrame.pack()
 
-        self.playButton = Button(videoControlFrame, text="Play", width=22, command=lambda: self.button_handler("play"))
+        self.playButton = Button(self.videoControlFrame, text="Play", font=self.fontStyle, width=22, command=lambda: self.button_handler("play"))
         self.playButton.pack(side=LEFT, padx=5, pady=5)
 
-        self.pauseButton = Button(videoControlFrame, text="Pause", width=22, command=lambda: self.button_handler("pause"))
+        self.pauseButton = Button(self.videoControlFrame, text="Pause", font=self.fontStyle, width=22, command=lambda: self.button_handler("pause"))
         self.pauseButton.pack(side=LEFT, padx=5, pady=5)
 
-        self.endButton = Button(videoControlFrame, text="End", width=22, command=lambda: self.button_handler("end"))
+        self.endButton = Button(self.videoControlFrame, text="End", font=self.fontStyle, width=22, command=lambda: self.button_handler("end"))
         self.endButton.pack(side=LEFT, padx=5, pady=5)
 
-        inputSourceFrame = Frame(self.mainPanel, bg="lightgrey")
-        inputSourceFrame.pack(fill='x')
+        self.inputSourceFrame = Frame(self.mainPanel, bg="lightgrey")
+        self.inputSourceFrame.pack(fill='x')
 
-        self.imageButton = Button(inputSourceFrame, text="Image Input", width=22, command=lambda: self.button_handler("image"))
+        self.imageButton = Button(self.inputSourceFrame, text="Image Input", font=self.fontStyle, width=22, command=lambda: self.button_handler("image"))
         self.imageButton.pack(side=LEFT, padx=5, pady=5)
 
-        self.videoButton = Button(inputSourceFrame, text="Video Input", width=22, command=lambda: self.button_handler("video"))
+        self.videoButton = Button(self.inputSourceFrame, text="Video Input", font=self.fontStyle, width=22, command=lambda: self.button_handler("video"))
         self.videoButton.pack(side=LEFT, padx=5, pady=5)
 
-        self.cameraButton = Button(inputSourceFrame, text="Camera Input", width=22, command=lambda: self.button_handler("camera"))
+        self.cameraButton = Button(self.inputSourceFrame, text="Camera Input", font=self.fontStyle, width=22, command=lambda: self.button_handler("camera"))
         self.cameraButton.pack(side=LEFT, padx=5, pady=5)
 
         self.modelSelect = StringVar(self.mainPanel)
         self.modelSelect.set("Prediction Model Select")
 
-        modelSelectMenu = OptionMenu(self.mainPanel, self.modelSelect, *(f for f in listdir("Models") if f.endswith('.model')))
-        modelSelectMenu.pack(fill='x', padx=5, pady=5,)
+        self.modelSelectMenu = OptionMenu(self.mainPanel, self.modelSelect, *(f for f in listdir("Models") if f.endswith('.model')))
+        self.modelSelectMenu.config(font=self.fontStyle)
+        self.modelSelectMenu.pack(fill='x', padx=5, pady=5,)
 
         self.modelSelect.trace("w", self.model_dropdown_select)
 
-        menuPanelFrame = Frame(self.mainPanel, bg="lightgrey")
-        menuPanelFrame.pack(fill='x')
+        self.menuPanelFrame = Frame(self.mainPanel, bg="lightgrey")
+        self.menuPanelFrame.pack(fill='x')
 
-        helpButton = Button(menuPanelFrame, text="Help", width=22, command=lambda: self.button_handler("help"))
-        helpButton.pack(side=LEFT, padx=5, pady=5)
+        self.helpButton = Button(self.menuPanelFrame, text="Help", font=self.fontStyle, width=22, command=lambda: self.button_handler("help"))
+        self.helpButton.pack(side=LEFT, padx=5, pady=5)
 
-        metricsButton = Button(menuPanelFrame, text="Metrics", width=22, command=lambda: self.button_handler("metrics"))
-        metricsButton.pack(side=LEFT, padx=5, pady=5)
+        self.metricsButton = Button(self.menuPanelFrame, text="Metrics", font=self.fontStyle, width=22, command=lambda: self.button_handler("metrics"))
+        self.metricsButton.pack(side=LEFT, padx=5, pady=5)
 
-        settingsButton = Button(menuPanelFrame, text="Settings", width=22, command=lambda: self.button_handler("settings"))
-        settingsButton.pack(side=LEFT, padx=5, pady=5)
+        self.settingsButton = Button(self.menuPanelFrame, text="Settings", font=self.fontStyle, width=22, command=lambda: self.button_handler("settings"))
+        self.settingsButton.pack(side=LEFT, padx=5, pady=5)
 
         self.helpPanelFrame = Frame(self.secondaryPanel, bg="lightgrey")
 
-        help_title = Label(self.helpPanelFrame, text="Help", bg="lightgrey")
-        help_title.config(font=(14))
-        help_title.pack(pady=10)
+        self.help_title = Label(self.helpPanelFrame, text="Help", font=self.fontStyle, bg="lightgrey")
+        self.help_title.pack(pady=10)
 
-        helpText = Text(self.helpPanelFrame, bg="lightgrey", bd=0, relief=FLAT)
+        self.helpText = Text(self.helpPanelFrame, bg="lightgrey", font=self.fontStyle, bd=0, relief=FLAT)
 
         helpScroll = Scrollbar(self.helpPanelFrame)
         helpScroll.pack(side=RIGHT, fill=Y)
-        helpText.pack(side=LEFT, fill='y', padx=5, pady=5)
-        helpScroll.config(command=helpText.yview)
-        helpText.config(yscrollcommand=helpScroll.set)
+        self.helpText.pack(side=LEFT, fill='y', padx=5, pady=5)
+        helpScroll.config(command=self.helpText.yview)
+        self.helpText.config(yscrollcommand=helpScroll.set)
 
-        with open('Utilities/help.txt', 'r') as file:
-            data_text = file.read()
+        try:
+            with open('Utilities/help.txt', 'r') as file:
+                data_text = file.read()
+        except:
+            print("[ERROR] Cannot find help.txt file in Utilities folder. Please readd file by downloading from GitHub repo at: https://github.com/CallumAltham/Facial-Emotion-Recognition")
 
-        helpText.insert(END, data_text)
-        helpText['state'] = DISABLED
+        self.helpText.insert(END, data_text)
+        self.helpText['state'] = DISABLED
 
         self.settingsPanelFrame = Frame(self.secondaryPanel, bg="lightgrey")
         
-        settings_title = Label(self.settingsPanelFrame, text="Settings", bg="lightgrey")
-        settings_title.config(font=(14))
-        settings_title.pack(pady=10)
+        self.settings_title = Label(self.settingsPanelFrame, text="Settings", font=self.fontStyle, bg="lightgrey")
+        self.settings_title.pack(pady=10)
+
+        self.fontsizeselect = StringVar(self.settingsPanelFrame)
+        self.fontsizeselect.set("Font Size") # default value
+
+        fontsizes = [8,10,12,14,16,18,20]
+
+        self.fontsizeselectmenu = OptionMenu(self.settingsPanelFrame, self.fontsizeselect, *fontsizes)
+        self.fontsizeselectmenu.config(font=self.fontStyle)
+        self.fontsizeselectmenu.pack(fill='x', padx=5, pady=5)
+        self.fontsizeselect.trace("w", self.fontsize_dropdown_select)
+
+        self.fontfamilyselect = StringVar(self.settingsPanelFrame)
+        self.fontfamilyselect.set("Font Family") # default value
+
+        font_families = ['System', 'Arial', 'Arial Black', 'Calibri', 'Comic Sans MS', 'Helvetica', 'Lucia Grande', 'Times New Roman']
+
+        self.fontfamilyselectmenu = OptionMenu(self.settingsPanelFrame, self.fontfamilyselect, *font_families)
+        self.fontfamilyselectmenu.config(font=self.fontStyle)
+        self.fontfamilyselectmenu.pack(fill='x', padx=5, pady=5)
+        self.fontfamilyselect.trace("w", self.fontfamily_dropdown_select)
+
+        self.fontcolourselect = StringVar(self.settingsPanelFrame)
+        self.fontcolourselect.set("Font Colour") # default value
+
+        font_colours = ["White", "Black", "Red", "Green", "Blue", "Cyan", "Yellow", "Magenta"]
+
+        self.fontcolourselectmenu = OptionMenu(self.settingsPanelFrame, self.fontcolourselect, *font_colours)
+        self.fontcolourselectmenu.config(font=self.fontStyle)
+        self.fontcolourselectmenu.pack(fill='x', padx=5, pady=5)
+        self.fontcolourselect.trace("w", self.fontcolour_dropdown_select)
+
+        self.settingssaveButton = Button(self.settingsPanelFrame, text="Save Settings", font=self.fontStyle, width=60, command=lambda: self.button_handler("save-settings"))
+        self.settingssaveButton.pack(side=RIGHT, padx=5, pady=5)
+        self.settingssaveButton['state'] = DISABLED
 
         self.metricsPanelFrame = Frame(self.secondaryPanel, bg="lightgrey")
 
-        metrics_title = Label(self.metricsPanelFrame, text="Metrics", bg="lightgrey")
-        metrics_title.config(font=(14))
-        metrics_title.pack(pady=10)
+        self.metrics_title = Label(self.metricsPanelFrame, text="Metrics", font=self.fontStyle, bg="lightgrey")
+        self.metrics_title.pack(pady=10)
         
         self.metricsCanvas = None
         self.current_fig = None
@@ -163,26 +204,41 @@ class facial_rec:
 
         metrics = ["Confusion Matrix", "Normalized Confusion Matrix", "F-Score, Precision and Recall", "MAE and MSE"]
 
-        metricsSelectMenu = OptionMenu(metricsButtonsFrame, self.metricSelect, *metrics)
-        metricsSelectMenu.pack(side=LEFT, padx=5, pady=5,)
+        self.metricsSelectMenu = OptionMenu(metricsButtonsFrame, self.metricSelect, *metrics)
+        self.metricsSelectMenu.config(font=self.fontStyle)
+        self.metricsSelectMenu.pack(side=LEFT, padx=5, pady=5,)
         self.metricSelect.trace("w", self.metric_dropdown_select)
 
-        saveButton = Button(metricsButtonsFrame, text="Save to Disk", width=22, command=lambda: self.button_handler("save"))
-        saveButton.pack(side=RIGHT, padx=5, pady=5)
+        self.saveMetricButton = Button(metricsButtonsFrame, text="Save to Disk", font=self.fontStyle, width=22, command=lambda: self.button_handler("save"))
+        self.saveMetricButton.pack(side=RIGHT, padx=5, pady=5)
+
+    def fontsize_dropdown_select(self, *args):
+        self.fontStyleSize = self.fontsizeselect.get()
+        self.settingssaveButton['state'] = NORMAL
+
+    def fontfamily_dropdown_select(self, *args):
+        self.fontStyleFamily = self.fontfamilyselect.get()
+        self.settingssaveButton['state'] = NORMAL
+
+    def fontcolour_dropdown_select(self, *args):
+        self.fontStyleColour = self.fontcolourselect.get()
+        self.settingssaveButton['state'] = NORMAL
 
     """METHOD USED TO HANDLE SELECTION OF ITEMS WITHIN MODEL SELECTOR DROPDOWN"""
     def model_dropdown_select(self, *args):
         model_name = self.modelSelect.get()
 
         model_pres = False
-
-        file = open("Utilities/model_config.txt", "r")
-        for line in file:
-            items = line.replace("\n", "").split(" ")
-            model_nme = items[0]
-            if model_nme == model_name:
-                model_pres = True
-        file.close()
+        try:
+            file = open("Utilities/model_config.txt", "r")
+            for line in file:
+                items = line.replace("\n", "").split(" ")
+                model_nme = items[0]
+                if model_nme == model_name:
+                    model_pres = True
+            file.close()
+        except:
+            print("[ERROR] Cannot access model configuration txt. Please ensure it is available at Utilities/model_config.txt")
 
         if model_pres:
             self.network_handler.load_model(model_name)
@@ -199,10 +255,13 @@ class facial_rec:
                 messagebox.showwarning("Model Configuration Error", "Cannot use selected model as not all parameters provided")
                 self.modelSelect.set("Prediction Model Select")
             else:
-                file = open("Utilities/model_config.txt", "a")
-                file.write(model_name + " " + height + " " + width + " " + num_classes + " " + classes + "\n")
-                file.close()
-                self.network_handler.load_model(model_name)
+                try:
+                    file = open("Utilities/model_config.txt", "a")
+                    file.write(model_name + " " + height + " " + width + " " + num_classes + " " + classes + "\n")
+                    file.close()
+                    self.network_handler.load_model(model_name)
+                except:
+                    print("[ERROR] Cannot access model configuration txt. Please ensure it is available at Utilities/model_config.txt")
 
     
     def metric_dropdown_select(self, *args):
@@ -233,9 +292,12 @@ class facial_rec:
             self.cameraButton['state'] = DISABLED
 
             self.endButton['state'] = NORMAL
-
-            self.cam_cap = camera_handler(0)
-            self.update_cam_image()
+            self.modelSelectMenu['state'] = DISABLED
+            try:
+                self.cam_cap = camera_handler(0)
+                self.update_cam_image()
+            except:
+                print("[ERROR] Cannot access camera, please ensure it is available and accessible")
 
         if button == "video":
             filename =  filedialog.askopenfilename(initialdir = "/", title = "Select Video file",filetypes = (("mp4 files","*.mp4"),("all files","*.*")))
@@ -250,9 +312,13 @@ class facial_rec:
                 self.imageButton['state'] = DISABLED
                 self.videoButton['state'] = DISABLED
                 self.cameraButton['state'] = DISABLED
+                self.modelSelectMenu['state'] = DISABLED
 
-                self.vid_cap = video_handler(filename)
-                self.update_vid_image()
+                try:
+                    self.vid_cap = video_handler(filename)
+                    self.update_vid_image()
+                except:
+                    print("[ERROR] Cannot access file, please ensure it is available and directory is accessible")
 
         if button == "image":
             filename =  filedialog.askopenfilename(initialdir = "/",title = "Select Image file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
@@ -262,24 +328,32 @@ class facial_rec:
                 self.videoButton['state'] = DISABLED
                 self.cameraButton['state'] = DISABLED
                 self.endButton['state'] = NORMAL
+                self.modelSelectMenu['state'] = DISABLED
+                try:
+                    self.img_cap = image_handler(filename)
+                    
+                    i, height, width = self.img_cap.load_image()
+                    i = self.network_handler.make_prediction(i, None)
 
-                self.img_cap = image_handler(filename)
+                    
+                    self.img = Image.fromarray(i)
+                    self.img = ImageTk.PhotoImage(self.img)
 
-                i, height, width = self.img_cap.load_image()
-                i = self.network_handler.make_image_prediction(i)
+                    self.canvas.config(width=width, height=height)
+                    self.canvas.create_image(0, 0, anchor=NW, image=self.img)
 
-                self.img = Image.fromarray(i)
-                self.img = ImageTk.PhotoImage(self.img)
+                    MsgBox = messagebox.askquestion ('Save Image To File','Do you want to save the annotated image to disk', icon = 'question')
+                    if MsgBox == 'yes':
+                        filename = filedialog.asksaveasfilename(initialdir="/", title="Select Location To Save Annotated Image", 
+                        defaultextension=".*", filetypes=(("jpeg files","*.jpg"), ("png files", "*.png"),("all files","*.*")))
+                        if filename:
+                            try:
+                                cv2.imwrite(filename, cv2.cvtColor(i, cv2.COLOR_BGR2RGB))
+                            except:
+                                print("[ERROR] Cannot write file to disk, please ensure selected directory exists and is accessible")
 
-                self.canvas.config(width=width, height=height)
-                self.canvas.create_image(0, 0, anchor=NW, image=self.img)
-
-                MsgBox = messagebox.askquestion ('Save Image To File','Do you want to save the annotated image to disk', icon = 'question')
-                if MsgBox == 'yes':
-                    filename = filedialog.asksaveasfilename(initialdir="/", title="Select Location To Save Annotated Image", 
-                    defaultextension=".*", filetypes=(("jpeg files","*.jpg"), ("png files", "*.png"),("all files","*.*")))
-                    if filename:
-                        cv2.imwrite(filename, cv2.cvtColor(i, cv2.COLOR_BGR2RGB))
+                except:
+                    print("[ERROR] Cannot access file, please ensure it is available and directory is accessible")
 
 
         if button == "pause":
@@ -371,9 +445,34 @@ class facial_rec:
                 filename =  filedialog.asksaveasfilename(initialdir = "/", title = "Select Location To Save Metric Image File", 
                 defaultextension=".*", filetypes=(("jpeg files","*.jpg"), ("png files", "*.png"),("all files","*.*")))
                 if filename:
-                    self.current_fig.savefig(filename)
+                    try:
+                        self.current_fig.savefig(filename)
+                    except:
+                        print("[ERROR] Cannot write file to disk, please ensure selected directory exists and is accessible")
             else:
                 MsgBox = messagebox.showwarning('No Metric Selected','Please select a metric to save to disk. A metric can be saved when an image is visible', icon = 'warning')
+
+        if button == "save-settings":
+            test = [self.main_title, self.playButton,
+                    self.pauseButton, self.endButton,
+                    self.imageButton,self.videoButton,
+                    self.cameraButton, self.modelSelectMenu,
+                    self.helpButton, self.metricsButton,
+                    self.settingsButton, self.help_title,
+                    self.helpText, self.settings_title,
+                    self.fontsizeselectmenu, self.fontfamilyselectmenu,
+                    self.fontcolourselectmenu, self.settingssaveButton, 
+                    self.metrics_title, self.metricsSelectMenu, self.saveMetricButton]
+
+            if self.fontStyleColour != "":
+                for element in test:
+                    element["fg"] = self.fontStyleColour
+            if self.fontStyleFamily != "":
+                self.fontStyle.configure(family=self.fontStyleFamily)
+            if self.fontStyleSize != 0:
+                self.fontStyle.configure(size=self.fontStyleSize)
+
+            self.settingssaveButton['state'] = DISABLED
 
     """FUNCTION USED TO CONTINUALLY UPDATE CANVAS CONTENT TO NEW CAMERA FRAME AT 20FPS RATE"""
     def update_cam_image(self):
@@ -384,13 +483,13 @@ class facial_rec:
         if not self.saveConfirmationFlag:
             MsgBox = messagebox.askquestion('Save Video To File','Do you want to save the processed video file to disk', icon = 'question')
             if MsgBox == 'yes':
-                filename = filename = filedialog.asksaveasfilename(initialdir="/", title="Select Location To Save Annotated Video", 
+                filename = filedialog.asksaveasfilename(initialdir="/", title="Select Location To Save Annotated Video", 
                     defaultextension=".*", filetypes=(("avi files", "*.avi"),("all files","*.*")))
                 if filename:
                     self.setVideoWriter(image.shape[:2][0], image.shape[:2][1], filename)
             self.saveConfirmationFlag = True
 
-        image = self.network_handler.make_video_prediction(image)
+        image = self.network_handler.make_prediction(image, None)
 
         if self.saveFlag:
             self.writeFrame(cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
@@ -420,7 +519,7 @@ class facial_rec:
 
                 self.canvas.config(width=vidimage.shape[:2][1], height=vidimage.shape[:2][0])
 
-                vidimage = self.network_handler.make_video_prediction(vidimage)
+                vidimage = self.network_handler.make_prediction(vidimage, "video")
 
                 if self.saveFlag:
                     self.writeFrame(cv2.cvtColor(vidimage, cv2.COLOR_RGB2BGR))
@@ -458,6 +557,7 @@ class facial_rec:
         self.imageButton['state'] = NORMAL
         self.videoButton['state'] = NORMAL
         self.cameraButton['state'] = NORMAL
+
 
 if __name__ == '__main__':
     app = facial_rec()

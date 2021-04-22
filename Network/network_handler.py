@@ -15,10 +15,17 @@ import numpy as np
 class networkHandler:
 
     def __init__(self):
+        self.model_name = ""
+        self.model_height = 0
+        self.model_width = 0
+        self.model_num_classes = 0
+        self.model_classes = {}
+        self.model_channels = 0
         try:
-            self.model = load_model("Models/face_rec.model")
+            self.model = load_model("Models/face_rec_2021-04-22_17-24-32.model")
+            self.check_model("face_rec_2021-04-22_17-24-32.model")
         except:
-            print("Default prediction model not found. Please add file provided to Models directory or run train_model.py file")
+            print("Default prediction model not found. Please add file provided to Models directory or run train_model.py file with default parameters")
             quit()
 
         self.sequenceAnalyser = sequence_analyser()
@@ -31,64 +38,90 @@ class networkHandler:
             quit()
 
     def load_model(self, model):
-        self.model = load_model("Models/" + model)
+        try:
+            self.model = load_model("Models/" + model)
+            self.check_model(model)
+        except:
+            print("[ERROR] Issue with accessing model file, please check it is available and is in the correct format for use (h5 format with a .model extension)")
 
-    def check_model(self):
-        print("Selected model: " + str(self.model))
+
+    def check_model(self, model_name):
+        try:
+            file = open("Utilities/model_config.txt", "r")
+            for line in file:
+                items = line.replace("\n", "").split(" ")
+                model_nme = items[0]
+                if model_nme == model_name:
+                    height = int(items[1])
+                    width = int(items[2])
+                    num_classes = int(items[3])
+                    classes = items[4:-1]
+                    num_channels = int(items[-1])
+
+                    self.model_name = model_nme
+                    self.model_height = height
+                    self.model_width = width
+                    self.model_num_classes = num_classes
+                    self.model_channels = num_channels
+                    
+                    keys = range(self.model_num_classes)
+                    values = classes
+                    classes_dict = {}
+
+                    for i in keys:
+                        classes_dict[i] = values[i]
+
+                    self.model_classes = classes_dict
+            file.close()
+        except:
+            print("[ERROR] Cannot access model config txt to load in default model. Please ensure model file is available containing default model paramaters from README")
+            quit()
 
     def clear_sequence_analyser(self):
         self.sequenceAnalyser.reset_counters()
 
-
-    ## THESE TWO FUNCTIONS CAN EASILY BE COMBINED WITH A CATEGORY VARIABLE
-    def make_image_prediction(self, image):
+    def make_prediction(self, image, category):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         rects = self.detector(gray, 0)
+
+        if category == "video":
+            make_pred = self.sequenceAnalyser.check_for_prediction()
 
         for rect in rects:
             image = self.get_prediction(image, rect, None)
-            #shape = self.shape_predicter(gray, rect)
+            shape = self.shape_predicter(gray, rect)
 
-            # for i in range(shape.num_parts):
-            #     p = shape.part(i)
-            #     cv2.circle(image, (p.x, p.y), 1, (0, 0, 255), -1)
-        
-        return image
+            for i in range(shape.num_parts):
+                p = shape.part(i)
+                cv2.circle(image, (p.x, p.y), 1, (0, 0, 255), -1)
 
-    def make_video_prediction(self, image):
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        rects = self.detector(gray, 0)
-        make_pred = self.sequenceAnalyser.check_for_prediction()
-
-        #if make_pred == True:
-            #REPLACE WITH REAL PREDICTION CODE WHEN MODEL MADE
-        for rect in rects:
-            prediction, image = self.get_prediction(image, rect, "video")
-
-            if make_pred == True:
-                self.sequenceAnalyser.add_new_prediction(prediction)
-            elif make_pred == "similarity":
-                prediction = self.sequenceAnalyser.check_new_prediction(prediction)
-            elif make_pred != True and make_pred != "similarity":
-                prediction = make_pred
-                self.sequenceAnalyser.update_prediction_counter()
+            if category == "video":
+                if make_pred == True:
+                    self.sequenceAnalyser.add_new_prediction(prediction)
+                elif make_pred == "similarity":
+                    prediction = self.sequenceAnalyser.check_new_prediction(prediction)
+                elif make_pred != True and make_pred != "similarity":
+                    prediction = make_pred
+                    self.sequenceAnalyser.update_prediction_counter()
 
         return image
 
     def get_prediction(self, image, rect, category):
-        label = {0:"Angry", 1:"Disgust", 2:"Fear", 3:"Happy", 4:"Neutral", 5:"Sad", 6:"Surpise"}
-        crop = image[rect.top():rect.bottom(), rect.left():rect.right()]
-        face = cv2.resize(crop, (299, 299))
+        if self.model_channels == 1:
+            image_to_crop = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            image_to_crop = image
+
+        crop = image_to_crop[rect.top():rect.bottom(), rect.left():rect.right()]
+        face = cv2.resize(crop, (self.model_height, self.model_width))
 
         img_scaled = face / 255.0
-        reshape = np.reshape(img_scaled, (1, 299, 299, 3))
+        reshape = np.reshape(img_scaled, (1, self.model_height, self.model_width, self.model_channels))
         img = np.vstack([reshape])
         result = self.model.predict(img)
-    
-        max_val = np.max(result[0])
-        max_index = np.where(result[0] == max_val)
-        idx = max_index[0]
-        prediction = label[int(idx)]
+        class_predict = np.argmax(result, axis=1)
+
+        prediction = self.model_classes[class_predict[0]]
         image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
         if category=="video":
             return prediction, image
