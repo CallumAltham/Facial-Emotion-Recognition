@@ -38,11 +38,11 @@ class networkHandler:
             quit()
 
     def load_model(self, model):
-        try:
-            self.model = load_model("Models/" + model)
-            self.check_model(model)
-        except:
-            print("[ERROR] Issue with accessing model file, please check it is available and is in the correct format for use (h5 format with a .model extension)")
+        #try:
+        self.model = load_model("Models/" + model)
+        self.check_model(model)
+        #except:
+        #    print("[ERROR] Issue with accessing model file, please check it is available and is in the correct format for use (h5 format with a .model extension)")
 
 
     def check_model(self, model_name):
@@ -74,7 +74,7 @@ class networkHandler:
                     self.model_classes = classes_dict
             file.close()
         except:
-            print("[ERROR] Cannot access model config txt to load in default model. Please ensure model file is available containing default model paramaters from README")
+            print("[ERROR] Cannot access model config txt to load in model. Please ensure model file is available containing default model paramaters from README")
             quit()
 
     def clear_sequence_analyser(self):

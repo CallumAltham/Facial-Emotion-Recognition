@@ -329,31 +329,31 @@ class facial_rec:
                 self.cameraButton['state'] = DISABLED
                 self.endButton['state'] = NORMAL
                 self.modelSelectMenu['state'] = DISABLED
-                try:
-                    self.img_cap = image_handler(filename)
-                    
-                    i, height, width = self.img_cap.load_image()
-                    i = self.network_handler.make_prediction(i, None)
+                #try:
+                self.img_cap = image_handler(filename)
+                
+                i, height, width = self.img_cap.load_image()
+                i = self.network_handler.make_prediction(i, None)
 
-                    
-                    self.img = Image.fromarray(i)
-                    self.img = ImageTk.PhotoImage(self.img)
+                
+                self.img = Image.fromarray(i)
+                self.img = ImageTk.PhotoImage(self.img)
 
-                    self.canvas.config(width=width, height=height)
-                    self.canvas.create_image(0, 0, anchor=NW, image=self.img)
+                self.canvas.config(width=width, height=height)
+                self.canvas.create_image(0, 0, anchor=NW, image=self.img)
 
-                    MsgBox = messagebox.askquestion ('Save Image To File','Do you want to save the annotated image to disk', icon = 'question')
-                    if MsgBox == 'yes':
-                        filename = filedialog.asksaveasfilename(initialdir="/", title="Select Location To Save Annotated Image", 
-                        defaultextension=".*", filetypes=(("jpeg files","*.jpg"), ("png files", "*.png"),("all files","*.*")))
-                        if filename:
-                            try:
-                                cv2.imwrite(filename, cv2.cvtColor(i, cv2.COLOR_BGR2RGB))
-                            except:
-                                print("[ERROR] Cannot write file to disk, please ensure selected directory exists and is accessible")
+                MsgBox = messagebox.askquestion ('Save Image To File','Do you want to save the annotated image to disk', icon = 'question')
+                if MsgBox == 'yes':
+                    filename = filedialog.asksaveasfilename(initialdir="/", title="Select Location To Save Annotated Image", 
+                    defaultextension=".*", filetypes=(("jpeg files","*.jpg"), ("png files", "*.png"),("all files","*.*")))
+                    if filename:
+                        try:
+                            cv2.imwrite(filename, cv2.cvtColor(i, cv2.COLOR_BGR2RGB))
+                        except:
+                            print("[ERROR] Cannot write file to disk, please ensure selected directory exists and is accessible")
 
-                except:
-                    print("[ERROR] Cannot access file, please ensure it is available and directory is accessible")
+                #except:
+                #    print("[ERROR] Cannot access file, please ensure it is available and directory is accessible")
 
 
         if button == "pause":
