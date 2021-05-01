@@ -94,6 +94,10 @@ class facial_rec:
         self.endButton = Button(self.videoControlFrame, text="End", font=self.fontStyle, width=22, command=lambda: self.button_handler("end"))
         self.endButton.pack(side=LEFT, padx=5, pady=5)
 
+        self.playButton['state'] = DISABLED
+        self.pauseButton['state'] = DISABLED
+        self.endButton['state'] = DISABLED
+
         self.inputSourceFrame = Frame(self.mainPanel, bg="lightgrey")
         self.inputSourceFrame.pack(fill='x')
 
@@ -277,9 +281,6 @@ class facial_rec:
 
     """METHOD USED TO START GUI LOOP AND SET MEDIA PLAYBACK FUNCTIONS AS DISABLED"""
     def start_gui(self):
-        self.playButton['state'] = DISABLED
-        self.pauseButton['state'] = DISABLED
-        self.endButton['state'] = DISABLED
         self.root.mainloop()
         
     """METHOD USED TO HANDLE FUNCTION OF INDIVIDUAL BUTTONS WITHIN GUI"""
@@ -367,13 +368,6 @@ class facial_rec:
             self.pauseButton['state'] = NORMAL
 
         if button == "end":
-            self.playButton['state'] = DISABLED
-            self.pauseButton['state'] = DISABLED
-            self.endButton['state'] = DISABLED
-
-            self.imageButton['state'] = NORMAL
-            self.videoButton['state'] = NORMAL
-            self.cameraButton['state'] = NORMAL
 
             if self.input_flag == "video":
                 self.root.after_cancel(self.vid_job)
@@ -489,7 +483,7 @@ class facial_rec:
                     self.setVideoWriter(image.shape[:2][0], image.shape[:2][1], filename)
             self.saveConfirmationFlag = True
 
-        image = self.network_handler.make_prediction(image, None)
+        image = self.network_handler.make_prediction(image, "video")
 
         if self.saveFlag:
             self.writeFrame(cv2.cvtColor(image, cv2.COLOR_RGB2BGR))

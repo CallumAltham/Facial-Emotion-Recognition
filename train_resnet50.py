@@ -28,7 +28,7 @@ argparser.add_argument("-lr", "--learning", required=False, type=float, default=
 argparser.add_argument("-e", "--epochs", required=False, default=100, help="Number of epochs for training. Default value of 100 epochs")
 argparser.add_argument("-bs", "--batch", required=False, default=32, help="Batch size used in model training. Default value of 32")
 argparser.add_argument("-n", "--classes", required=False, default=7, help="Number of classes within training and validation directories")
-argparser.add_argument("-t", "--train", required=False, default="datasets/CK+48", help="Directory for dataset")
+argparser.add_argument("-t", "--train", required=False, default="datasets/fer2013/data", help="Directory for dataset")
 argparser.add_argument("-he", "--height", required=False, default=224, help="Height of images used within training")
 argparser.add_argument("-w", "--width", required=False, default=224, help="Width of images used within training")
 arguments = vars(argparser.parse_args())
@@ -77,7 +77,7 @@ baseModel = ResNet50(weights="imagenet", include_top=False, input_shape=(224,224
 headModel = baseModel.output
 headModel = AveragePooling2D(pool_size=(7,7))(headModel)
 headModel = Flatten()(headModel)
-headModel = Dense(256, activation="relu")(headModel)
+headModel = Dense(512, activation="relu")(headModel)
 headModel = Dropout(0.5)(headModel)
 predictions = Dense(7, activation="softmax")(headModel)
 model = Model(inputs=baseModel.input, outputs=predictions)

@@ -31,9 +31,9 @@ class sequence_analyser:
             return self.current_prediction
         
     def check_recheck_counter(self):
-        if self.recheck_counter >= 100:
+        if self.recheck_counter >= 150:
             return "similarity"
-        elif self.recheck_counter < 100:
+        elif self.recheck_counter < 150:
             self.update_recheck_counter()
             return self.get_current_prediction()
 

@@ -7,8 +7,6 @@ import dlib
 from tkinter import * 
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, 
-NavigationToolbar2Tk)
 import pandas as pd
 import numpy as np
 
@@ -81,28 +79,47 @@ class networkHandler:
         self.sequenceAnalyser.reset_counters()
 
     def make_prediction(self, image, category):
+        prediction = ""
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         rects = self.detector(gray, 0)
 
         if category == "video":
             make_pred = self.sequenceAnalyser.check_for_prediction()
-
-        for rect in rects:
-            image = self.get_prediction(image, rect, None)
-            shape = self.shape_predicter(gray, rect)
-
-            for i in range(shape.num_parts):
-                p = shape.part(i)
-                cv2.circle(image, (p.x, p.y), 1, (0, 0, 255), -1)
-
-            if category == "video":
-                if make_pred == True:
+            if make_pred == True:
+                for rect in rects:
+                    prediction = self.get_prediction(image, rect, "sequence")
+                    shape = self.shape_predicter(gray, rect)
+                    for i in range(shape.num_parts):
+                        p = shape.part(i)
+                        cv2.circle(image, (p.x, p.y), 1, (0, 0, 255), -1)
                     self.sequenceAnalyser.add_new_prediction(prediction)
-                elif make_pred == "similarity":
+                    image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
+            elif make_pred == "similarity":
+                for rect in rects:
+                    prediction = self.get_prediction(image, rect, "sequence")
                     prediction = self.sequenceAnalyser.check_new_prediction(prediction)
-                elif make_pred != True and make_pred != "similarity":
+                    shape = self.shape_predicter(gray, rect)
+                    for i in range(shape.num_parts):
+                        p = shape.part(i)
+                        cv2.circle(image, (p.x, p.y), 1, (0, 0, 255), -1)
+                    image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
+            elif make_pred != True and make_pred != "similarity":
+                for rect in rects:
                     prediction = make_pred
                     self.sequenceAnalyser.update_prediction_counter()
+                    shape = self.shape_predicter(gray, rect)
+                    for i in range(shape.num_parts):
+                        p = shape.part(i)
+                        cv2.circle(image, (p.x, p.y), 1, (0, 0, 255), -1)
+                    image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
+        else:
+            for rect in rects:
+                image = self.get_prediction(image, rect, None)
+                shape = self.shape_predicter(gray, rect)
+
+                for i in range(shape.num_parts):
+                    p = shape.part(i)
+                    cv2.circle(image, (p.x, p.y), 1, (0, 0, 255), -1)
 
         return image
 
@@ -122,10 +139,10 @@ class networkHandler:
         class_predict = np.argmax(result, axis=1)
 
         prediction = self.model_classes[class_predict[0]]
-        image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
-        if category=="video":
-            return prediction, image
+        if category == "sequence":
+            return prediction
         else:
+            image = self.annotate_image(image, rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top(), prediction)
             return image
 
     def annotate_image(self, img, x, y, w, h, prediction):
