@@ -109,8 +109,8 @@ H = model.fit(train_ds, validation_data = validation_ds, callbacks=[reduce_lr, e
 end = time.perf_counter()
 print(f"\n[INFO] Model Training Completed Successfully In {end-start}s")
 
-print("\n[INFO] Saving Model to Models/inceptionv3_"+ datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") +".model")
-filename = "inceptionv3_"+ datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") +".model"
+print("\n[INFO] Saving Model to Models/mobilenetv2_"+ datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") +".model")
+filename = "mobilenetv2_"+ datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") +".model"
 model.save("Models/"+filename, save_format="h5")
 
 print(f"\n[INFO] Updating Configuration File. Please do not delete any data not added to the file by you")

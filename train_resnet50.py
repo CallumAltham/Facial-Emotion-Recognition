@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from imutils import paths
+from keras_vggface.vggface import VGGFace
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
@@ -73,12 +74,11 @@ validation_ds = val_datagen.flow_from_directory(TRAIN_DIR,
                                             subset="validation")
 
 print("\n[INFO] Creating Model...")
-baseModel = ResNet50(weights="imagenet", include_top=False, input_shape=(224,224,3))
+baseModel = VGGFace(model='resnet50', include_top=False, weights="vggface", input_shape=(224,224,3))
 headModel = baseModel.output
-headModel = AveragePooling2D(pool_size=(7,7))(headModel)
+#headModel = AveragePooling2D(pool_size=(7,7))(headModel)
 headModel = Flatten()(headModel)
-headModel = Dense(512, activation="relu")(headModel)
-headModel = Dropout(0.5)(headModel)
+headModel = Dense(1024, activation="relu")(headModel)
 predictions = Dense(7, activation="softmax")(headModel)
 model = Model(inputs=baseModel.input, outputs=predictions)
 print("\n[INFO] Model Ready For Compiling")
@@ -86,8 +86,17 @@ print("\n[INFO] Model Ready For Compiling")
 for layer in baseModel.layers:
     layer.trainable = False
 
-print("\n[INFO] Compiling Model")
-opt = Adam(lr = 1e-4, decay = 1e-4/EPOCHS)
+print("\n[INFO] Compiling Upper Layers")
+opt = Adam(lr = 1e-3, beta_1 = 0.9, beta_2 = 0.999, epsilon = 1e-08, decay = 0.0)
+model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
+print("\n[INFO] Upper Layers Training In Progress...")
+H = model.fit(train_ds, validation_data = validation_ds, epochs=10, verbose=1)
+
+for layer in model.layers:
+    layer.trainable = True
+
+print("\n[INFO] Compiling Model...")
+opt = SGD(lr = 1e-4, momentum = 0.9, decay = 0.0, nesterov = True)
 
 reduce_lr = ReduceLROnPlateau(
 monitor 	= 'val_loss',
