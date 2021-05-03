@@ -12,6 +12,10 @@ from PIL import Image, ImageTk
 from os import listdir
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+import time
+
 class facial_rec:
     """
 
@@ -197,7 +201,9 @@ class facial_rec:
         self.metrics_title = Label(self.metricsPanelFrame, text="Metrics", font=self.fontStyle, bg="lightgrey")
         self.metrics_title.pack(pady=10)
         
-        self.metricsCanvas = None
+        fig = Figure(figsize = (5, 5), dpi = 100)
+        self.metricsCanvas = FigureCanvasTkAgg(fig, self.metricsPanelFrame)
+        self.metricsCanvas.get_tk_widget().pack(pady=10, padx=10)
         self.current_fig = None
 
         metricsButtonsFrame = Frame(self.metricsPanelFrame, bg="lightgrey")
@@ -210,11 +216,11 @@ class facial_rec:
 
         self.metricsSelectMenu = OptionMenu(metricsButtonsFrame, self.metricSelect, *metrics)
         self.metricsSelectMenu.config(font=self.fontStyle)
-        self.metricsSelectMenu.pack(side=LEFT, padx=5, pady=5,)
+        self.metricsSelectMenu.pack(fill='x', padx=5, pady=5)
         self.metricSelect.trace("w", self.metric_dropdown_select)
 
         self.saveMetricButton = Button(metricsButtonsFrame, text="Save to Disk", font=self.fontStyle, width=22, command=lambda: self.button_handler("save"))
-        self.saveMetricButton.pack(side=RIGHT, padx=5, pady=5)
+        self.saveMetricButton.pack(padx=5, pady=5)
 
     def fontsize_dropdown_select(self, *args):
         self.fontStyleSize = self.fontsizeselect.get()
@@ -275,7 +281,7 @@ class facial_rec:
             self.metricsCanvas.get_tk_widget().pack_forget()
         except AttributeError: 
             pass  
-        self.metricsCanvas = FigureCanvasTkAgg(metric, self.metricsPanelFrame)
+        self.metricsCanvas = FigureCanvasTkAgg(self.current_fig, self.metricsPanelFrame)
         self.metricsCanvas.draw()
         self.metricsCanvas.get_tk_widget().pack(pady=10, padx=10)
 
