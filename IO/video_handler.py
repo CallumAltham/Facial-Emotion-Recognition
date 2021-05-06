@@ -8,6 +8,8 @@ class video_handler:
         Used to handle input from video source and 
         provide said input to facial_rec class.
     """
+
+    """Initialises class wide variables"""
     def __init__(self, source):
         try:
             self.source = source
@@ -15,6 +17,7 @@ class video_handler:
         except:
             print("[ERROR] Unable to access video file, please ensure it is available and not corrupted")
             
+    """Retrieve current video frame from video stream"""
     def get_current_frame(self):
         ret, frame = self.videoStream.read()
         return ret, frame

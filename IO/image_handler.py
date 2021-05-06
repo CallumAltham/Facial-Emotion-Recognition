@@ -10,9 +10,12 @@ class image_handler:
         Used to handle input from image source (e.g. photo) and 
         provide said input to GUI class.
     """
+
+    """Used to initialise class wide variables"""
     def __init__(self, source):
         self.source = source
 
+    """Used to load the user specified file into the system"""
     def load_image(self):
         try:
             img = cv2.cvtColor(cv2.imread(self.source, 1), cv2.COLOR_BGR2RGB)

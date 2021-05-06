@@ -1,23 +1,14 @@
 import Network.housekeeping
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.preprocessing import image_dataset_from_directory
 from tensorflow.keras.applications.inception_v3 import InceptionV3
-from tensorflow.keras.layers import AveragePooling2D, Dropout, Flatten, Dense, Input, GlobalAveragePooling2D, BatchNormalization
+from tensorflow.keras.layers import Dropout, Dense, GlobalAveragePooling2D
 from tensorflow.keras.applications.inception_v3 import preprocess_input
 from tensorflow.keras.models import Model
 from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
-from tensorflow.keras.optimizers import Adam, SGD, RMSprop
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.callbacks import LearningRateScheduler
-from sklearn.preprocessing import LabelBinarizer
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
-from imutils import paths
+from tensorflow.keras.optimizers import Adam, SGD,
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-import cv2
 import os
 import time
 import datetime
@@ -33,6 +24,7 @@ argparser.add_argument("-he", "--height", required=False, default=229, help="Hei
 argparser.add_argument("-w", "--width", required=False, default=229, help="Width of images used within training")
 arguments = vars(argparser.parse_args())
 
+# Specification of model arguments
 INIT_LR = (arguments["learning"])
 EPOCHS = int(arguments["epochs"])
 BS = int(arguments["batch"])
@@ -40,8 +32,9 @@ NUM_CLASSES = int(arguments["classes"])
 TRAIN_DIR = arguments["train"]
 HEIGHT = int(arguments["height"])
 WIDTH = int(arguments["width"])
-IMAGE_SIZE = (int(arguments["height"]), int(arguments["width"]))
+IMAGE_SIZE = (int(arguments["height"]), int(arguments["width"]), 3)
 
+# Creation of datasets
 print("\n[INFO] Creating Datasets...")
 print("\nTraining:")
 train_datagen = ImageDataGenerator(dtype='float32',
@@ -72,25 +65,30 @@ validation_ds = val_datagen.flow_from_directory(TRAIN_DIR,
                                             target_size=IMAGE_SIZE,
                                             subset="validation")
 
+# Creation of models
 print("\n[INFO] Creating Model...")
-baseModel = InceptionV3(weights="imagenet", include_top=False, input_shape=(229,229,3))
+baseModel = InceptionV3(weights="imagenet", include_top=False, input_shape=IMAGE_SIZE)
 headModel = baseModel.output
 headModel = GlobalAveragePooling2D()(headModel)
 headModel = Dense(1024, activation="relu")(headModel)
 headModel = Dropout(0.5)(headModel)
 predictions = Dense(7, activation="softmax")(headModel)
 model = Model(inputs=baseModel.input, outputs=predictions)
+model.summary()
+
+#Compiling and training initial layers
 print("\n[INFO] Model Ready For Compiling")
 
 for layer in baseModel.layers:
     layer.trainable = False
 
 print("\n[INFO] Compiling Upper Layers")
-opt = Adam(lr = 1e-3, beta_1 = 0.9, beta_2 = 0.999, epsilon = 1e-08, decay = 0.0)
+opt = Adam(lr = INIT_LR, beta_1 = 0.9, beta_2 = 0.999, epsilon = 1e-08, decay = 0.0)
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 print("\n[INFO] Upper Layers Training In Progress...")
 H = model.fit(train_ds, validation_data = validation_ds, epochs=10, verbose=1)
 
+# Compiling and training complete model
 for layer in model.layers:
     layer.trainable = True
 
@@ -118,13 +116,15 @@ H = model.fit(train_ds, validation_data = validation_ds, callbacks=[reduce_lr, e
 end = time.perf_counter()
 print(f"\n[INFO] Model Training Completed Successfully In {end-start}s")
 
+# Save model to disk
 print("\n[INFO] Saving Model to Models/inceptionv3_"+ datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") +".model")
 filename = "inceptionv3_"+ datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") +".model"
 model.save("Models/"+filename, save_format="h5")
 
+# Update configuration parameters
 print(f"\n[INFO] Updating Configuration File. Please do not delete any data not added to the file by you")
 file = open("Utilities/model_config.txt", "a")
-sentence = "\n" + filename + " " + str(HEIGHT) + " " + str(WIDTH) + " " + str(NUM_CLASSES) + " " + " ".join(list(train_ds.class_indices.keys()))
+sentence = "\n" + filename + " " + str(HEIGHT) + " " + str(WIDTH) + " " + str(NUM_CLASSES) + " " + " ".join(list(train_ds.class_indices.keys())) + " " + 3
 file.write(sentence)
 file.close()
 

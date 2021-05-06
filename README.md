@@ -2,13 +2,15 @@
 
 ## DEPENDENCIES AND INSTALLATION
 ```bash
-dlib: 19.21.1
-pandas: 1.1.5
-tensorflow: 2.3.1
-matplotlib: 3.3.3
-numpy: 1.18.5
-opencv: 4.4.0.46
-Pillow: 8.1.2
+tensorflow==2.3.1
+pandas==1.1.5
+dlib==19.21.1
+matplotlib==3.3.3
+numpy==1.18.5
+opencv_python==4.4.0.46
+Pillow==8.2.0
+scikit_learn==0.24.2
+
 ```
 
 Use the package manager to install required dependencies with requirements.txt file found in root folder.
@@ -16,8 +18,6 @@ Use the package manager to install required dependencies with requirements.txt f
 ```bash
 pip install -r requirements.txt
 ```
-
-![Alt Text](https://raw.githubusercontent.com/CallumAltham/Facial-Emotion-Recognition/main/Documentation/gifs/requirements-install.gif)
 
 Note: Tensorflow may not install GPU support correctly without presence of CUDA and CuDNN. Please see link below for more info:
 https://www.tensorflow.org/install/gpu
@@ -52,10 +52,7 @@ AVAILABLE PARAMETERS
             Number of classes within training and validation directories
 
 -t --train
-            Directory for training dataset
-
--v --val
-            Directory for validation dataset
+            Directory for dataset
 
 -he --height
             Height of images used within training
@@ -75,9 +72,6 @@ NOTE: Please ignore any warnings entered into console. These are due to an inbui
 ```bash
 python facial_rec.py
 ```
-
-![Alt Text](https://raw.githubusercontent.com/CallumAltham/Facial-Emotion-Recognition/main/Documentation/gifs/application_open.gif)
-
 <br />
 
 ## USAGE - CONTROLLING INPUT PLAYBACK
@@ -135,21 +129,13 @@ To save this metric to file, press the save to disk button next to the dropdown 
 
 ## USAGE - CHANGE SETTINGS
 
-ADD LATER
+Within the application, a separate panel is available to allow for the generation of metrics.
 
-<br />
+To access this panel, click the button labelled "Settings" at the bottom right of the application.
 
-## TROUBLESHOOTING
+Within this panel are a series of dropdown menus and a button. To change an application setting, please select an item from a dropdown.
 
-The following table may show potential solutions to problems that may arise. If not, please feel free to attempt to find a solution yourself within the code or email me at callumaltham1@gmail.com for aid with the subject line "Facial Emotion Recognition System Issue".
-
-NOTE: Please inform me of any issues you find, even if you manage to fix them yourselves so it can be added to the main code repository.
-
-| Issue      |Potential Solution|
-| ------------- |:-------------:|
-| col 3 is      | right-aligned |
-| col 2 is      | centered      |
-| zebra stripes | are neat      |
+Once your chosen parameters have been chosen from the dropdown, press the save settings button below to change and update application parameters
 
 <br />
 
@@ -158,5 +144,3 @@ NOTE: Please inform me of any issues you find, even if you manage to fix them yo
 Any questions please don't hestitate to email me at callumaltham1@gmail.com. Please start the subject line of the email as "Facial Emotion Recognition System Query" 
 
 <br />
-
-![Gif of Cat waving goodbye](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif)

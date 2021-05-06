@@ -24,6 +24,7 @@ class facial_rec:
         Used to handle display of GUI and major application functions
     """
 
+    """USED TO INITIALISE GLOBAL CLASS VARIABLES"""
     def __init__(self):
 
         """WINDOW PROPERTIES AND MAIN WINDOW FRAME"""
@@ -46,11 +47,14 @@ class facial_rec:
         
         self.img_cap = None
 
+        """NETWORK HANDLER USED TO MANAGE PREDICTION SYSTEM"""
         self.network_handler = networkHandler()
 
+        """STATE FLAGS USED TO MANAGE SYSTEM STATES"""
         self.saveFlag = False
         self.saveConfirmationFlag = False
 
+        """PARAMETERS FOR VIDEO WRITING TO DISK"""
         self.videoWriter = None
         self.image_to_save = None
 
@@ -117,7 +121,15 @@ class facial_rec:
         self.modelSelect = StringVar(self.mainPanel)
         self.modelSelect.set("Prediction Model Select")
 
-        self.modelSelectMenu = OptionMenu(self.mainPanel, self.modelSelect, *(f for f in listdir("Models") if f.endswith('.model')))
+        models = []
+        files = listdir("models")
+        for file in files:
+            if file.endswith(".model"):
+                models.append(file)
+        models.append("Refresh List")
+
+
+        self.modelSelectMenu = OptionMenu(self.mainPanel, self.modelSelect, *models)
         self.modelSelectMenu.config(font=self.fontStyle)
         self.modelSelectMenu.pack(fill='x', padx=5, pady=5,)
 
@@ -134,6 +146,8 @@ class facial_rec:
 
         self.settingsButton = Button(self.menuPanelFrame, text="Settings", font=self.fontStyle, width=22, command=lambda: self.button_handler("settings"))
         self.settingsButton.pack(side=LEFT, padx=5, pady=5)
+
+        """SECONDARY PANEL LAYOUT SPECIFICATIONS"""
 
         self.helpPanelFrame = Frame(self.secondaryPanel, bg="lightgrey")
 
@@ -222,58 +236,74 @@ class facial_rec:
         self.saveMetricButton = Button(metricsButtonsFrame, text="Save to Disk", font=self.fontStyle, width=22, command=lambda: self.button_handler("save"))
         self.saveMetricButton.pack(padx=5, pady=5)
 
+    """METHOD USED TO HANDLE SELECTION OF ITEMS WITHIN FONT SIZE SELECTOR DROPDOWN"""
     def fontsize_dropdown_select(self, *args):
         self.fontStyleSize = self.fontsizeselect.get()
         self.settingssaveButton['state'] = NORMAL
 
+    """METHOD USED TO HANDLE SELECTION OF ITEMS WITHIN FONT FAMILY SELECTOR DROPDOWN"""
     def fontfamily_dropdown_select(self, *args):
         self.fontStyleFamily = self.fontfamilyselect.get()
         self.settingssaveButton['state'] = NORMAL
 
+    """METHOD USED TO HANDLE SELECTION OF ITEMS WITHIN FONT COLOUR SELECTOR DROPDOWN"""
     def fontcolour_dropdown_select(self, *args):
         self.fontStyleColour = self.fontcolourselect.get()
         self.settingssaveButton['state'] = NORMAL
 
     """METHOD USED TO HANDLE SELECTION OF ITEMS WITHIN MODEL SELECTOR DROPDOWN"""
     def model_dropdown_select(self, *args):
-        model_name = self.modelSelect.get()
+        result = self.modelSelect.get()
+        if result != "Refresh List":
+            model_name = result
 
-        model_pres = False
-        try:
-            file = open("Utilities/model_config.txt", "r")
-            for line in file:
-                items = line.replace("\n", "").split(" ")
-                model_nme = items[0]
-                if model_nme == model_name:
-                    model_pres = True
-            file.close()
-        except:
-            print("[ERROR] Cannot access model configuration txt. Please ensure it is available at Utilities/model_config.txt")
+            model_pres = False
+            try:
+                file = open("Utilities/model_config.txt", "r")
+                for line in file:
+                    items = line.replace("\n", "").split(" ")
+                    model_nme = items[0]
+                    if model_nme == model_name:
+                        model_pres = True
+                file.close()
+            except:
+                print("[ERROR] Cannot access model configuration txt. Please ensure it is available at Utilities/model_config.txt")
 
-        if model_pres:
-            self.network_handler.load_model(model_name)
-        else:
-            width = simpledialog.askstring("Parameter Input", "What is the width used in the model?", parent=self.root)
-            height = simpledialog.askstring("Parameter Input", "What is the height used in the model?", parent=self.root)
-            num_classes = simpledialog.askstring("Parameter Input", "How many classes are used in the model?", parent=self.root)
-            classes = simpledialog.askstring("Parameter Input", "What are the classes used in the model? (Classes must be in the same order as specified during training and separated by a space)")
-
-            params = [width, height, num_classes, classes]
-            res = None in params
-
-            if res:
-                messagebox.showwarning("Model Configuration Error", "Cannot use selected model as not all parameters provided")
-                self.modelSelect.set("Prediction Model Select")
+            if model_pres:
+                self.network_handler.load_model(model_name)
             else:
-                try:
-                    file = open("Utilities/model_config.txt", "a")
-                    file.write(model_name + " " + height + " " + width + " " + num_classes + " " + classes + "\n")
-                    file.close()
-                    self.network_handler.load_model(model_name)
-                except:
-                    print("[ERROR] Cannot access model configuration txt. Please ensure it is available at Utilities/model_config.txt")
+                width = simpledialog.askstring("Parameter Input", "What is the width used in the model?", parent=self.root)
+                height = simpledialog.askstring("Parameter Input", "What is the height used in the model?", parent=self.root)
+                num_classes = simpledialog.askstring("Parameter Input", "How many classes are used in the model?", parent=self.root)
+                classes = simpledialog.askstring("Parameter Input", "What are the classes used in the model? (Classes must be in the same order as specified during training and separated by a space)")
 
-    
+                params = [width, height, num_classes, classes]
+                res = None in params
+
+                if res:
+                    messagebox.showwarning("Model Configuration Error", "Cannot use selected model as not all parameters provided")
+                    self.modelSelect.set("Prediction Model Select")
+                else:
+                    try:
+                        file = open("Utilities/model_config.txt", "a")
+                        file.write(model_name + " " + height + " " + width + " " + num_classes + " " + classes + "\n")
+                        file.close()
+                        self.network_handler.load_model(model_name)
+                    except:
+                        print("[ERROR] Cannot access model configuration txt. Please ensure it is available at Utilities/model_config.txt")
+        else:
+            menu = self.modelSelectMenu["menu"]
+            menu.delete(0, "end")
+            models = []
+            files = listdir("models")
+            for file in files:
+                if file.endswith(".model"):
+                    models.append(file)
+            models.append("Refresh List")
+            for model in models:
+                menu.add_command(label=model)
+
+    """METHOD USED TO HANDLE SELECTION OF ITEMS WITHIN METRIC SELECTOR DROPDOWN"""    
     def metric_dropdown_select(self, *args):
         metric = self.network_handler.generate_metrics(self.metricSelect.get())
         self.current_fig = metric
@@ -538,16 +568,20 @@ class facial_rec:
                 if self.saveFlag:
                     self.releaseWriter()
 
+    """FUNCTION USED TO SET VIDEO WRITER PROPERTIES TO CONTAIN VIDEO HEIGHT, WIDTH AND FILENAME"""
     def setVideoWriter(self, height, width, filename):
         self.videoWriter = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'DIVX'), 10, (width, height))
         self.saveFlag = True
 
+    """FUNCTION USED TO WRITE INDIVIDUAL VIDEO FRAME TO PREVIOUSLY CREATED VIDEO FILE"""
     def writeFrame(self, frame):
         self.videoWriter.write(frame)
 
+    """FUNCTION USED TO RELEASE VIDEO WRITER FROM MEMORY ONCE VIDEO DATA HAS FINISHED WRITING"""
     def releaseWriter(self):
         self.videoWriter.release()
 
+    """FUNCTION USED TO RESET GUI CANVAS ALONG WITH RESETTING ALL GUI ELEMENTS INTO INITIAL STATES"""
     def reset_canvas(self):
         self.canvas.delete("all")
         self.canvas.config(width=450, height=450)
@@ -557,6 +591,7 @@ class facial_rec:
         self.imageButton['state'] = NORMAL
         self.videoButton['state'] = NORMAL
         self.cameraButton['state'] = NORMAL
+        self.modelSelectMenu['state'] = NORMAL
 
 
 if __name__ == '__main__':
